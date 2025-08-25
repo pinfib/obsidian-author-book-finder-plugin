@@ -11,6 +11,10 @@ import {
 	getOrcidPersonalInfo,
 	formatOrcidPersonalInfo,
 } from "./src/orcid-anon-api";
+import {
+	getWikipediaPageInfo,
+	formatWikipediaMarkdownLink,
+} from "./src/wikipedia-page-search";
 
 interface TextInsertPluginSettings {
 	defaultText: string;
@@ -52,6 +56,10 @@ export default class TextInsertPlugin extends Plugin {
 	private async insertCustomText(editor: Editor) {
 		const selection = editor.getSelection();
 
+		let wikipediaLink = formatWikipediaMarkdownLink(
+			await getWikipediaPageInfo(selection)
+		);
+
 		let wikiData = await getWikidataPersonInfo(selection.trim());
 
 		let wikiDataString = formatWikiDataResult(wikiData);
@@ -70,7 +78,7 @@ export default class TextInsertPlugin extends Plugin {
 
 		// Заменяем выделенный текст на наш кастомный текст
 		editor.replaceSelection(
-			`${wikiDataString}\n${openLibraryString}\n${orcidString}`
+			`${wikipediaLink}\n${wikiDataString}\n${openLibraryString}\n${orcidString}`
 		);
 	}
 
