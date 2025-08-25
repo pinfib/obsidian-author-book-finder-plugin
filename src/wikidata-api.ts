@@ -19,7 +19,7 @@ interface WikidataResult {
 
 export async function getWikidataPersonInfo(
 	personName: string
-): Promise<WikidataResult> {
+): Promise<WikidataResult | null> {
 	// Определяем язык ввода по наличию кириллических символов
 	const hasCyrillic = /[а-яё]/i.test(personName);
 	const searchLanguage = hasCyrillic ? "ru" : "en";
@@ -201,7 +201,7 @@ export async function getWikidataPersonInfo(
 		return result;
 	} catch (error) {
 		console.error("Error fetching data from Wikidata:", error);
-		throw new Error("Failed to fetch data from Wikidata");
+		return null;
 	}
 }
 

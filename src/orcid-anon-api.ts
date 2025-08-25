@@ -62,7 +62,9 @@ interface OrcidSummary {
 }
 
 interface ResearcherInfo {
-	profileUrl: string;
+	profileId: string;
+	familyName: string;
+	givenName: string;
 	// affiliations: string[];
 	// works: {
 	// 	validated: number;
@@ -111,92 +113,31 @@ export async function getOrcidPersonalInfo(
 		}
 
 		const firstResult = searchData["expanded-result"][0];
-		const orcidId = firstResult["orcid-id"];
-		// const summaryUrl = `https://orcid.org/${orcidId}/summary.json`;
 
-		// console.log("summaryUrl", summaryUrl);
-
-		// const summaryResponse = await fetch(summaryUrl, {
-		// 	//mode: "no-cors",
-		// 	headers: {
-		// 		"Content-Type": "application/json",
-		// 	},
-		// });
-
-		// //console.log(summaryResponse);
-
-		// if (!summaryResponse.ok) {
-		// 	throw new Error(
-		// 		`Summary HTTP error! status: ${summaryResponse.status}`
-		// 	);
-		// }
-
-		// //const summaryData: OrcidSummary = await summaryResponse.json();
-
-		// const summaryDataText = await summaryResponse.text();
-		// const summaryData: OrcidSummary = JSON.parse(summaryDataText);
-
-		// //const searchData: OrcidSearchResult = await searchResponse.json();
-		// console.log("summary", summaryData);
-
-		return { profileUrl: `https://orcid.org/${orcidId}` };
-
-		// return {
-		// 	profileUrl: `https://orcid.org/${orcidId}`,
-		// 	affiliations: summaryData.employmentAffiliations.map(
-		// 		(affil) =>
-		// 			`${affil.organizationName} (${affil.role}, ${
-		// 				affil.startDate
-		// 			}${affil.endDate ? `-${affil.endDate}` : ""})`
-		// 	),
-		// 	works: {
-		// 		validated: summaryData.validatedWorks,
-		// 		selfAsserted: summaryData.selfAssertedWorks,
-		// 	},
-		// 	education: summaryData.educationQualifications.map((edu) => ({
-		// 		organization: edu.organizationName,
-		// 		role: edu.role,
-		// 		startDate: edu.startDate,
-		// 		endDate: edu.endDate,
-		// 	})),
-		// 	otherIdentifiers: summaryData.externalIdentifiers.map((id) => ({
-		// 		name: id.commonName,
-		// 		value: id.reference,
-		// 		url: id.url,
-		// 	})),
-		//};
+		return {
+			profileId: firstResult["orcid-id"],
+			familyName: firstResult["family-names"],
+			givenName: firstResult["given-names"],
+		};
 	} catch (error) {
 		console.error("Error fetching researcher info:", error);
-		throw error;
+		return null;
 	}
 }
 
 export function formatOrcidPersonalInfo(
 	researcherInfo: ResearcherInfo | null
 ): string {
-	if (!researcherInfo) {
+	if (!researcherInfo?.profileId) {
 		return "- ORCID: Данные исследователя не найдены или произошла ошибка";
 	}
 
 	const lines = [
-		`- ORCID: профиль: ${researcherInfo.profileUrl} (на этом ресурсе автор сам заполняет данные о себе)`,
-		// `\t- аффилиации:`,
-		// ...researcherInfo.affiliations.map((affil) => `\t\t• ${affil}`),
-		// `\t- работы:`,
-		// `\t\t• Подтвержденные работы: ${researcherInfo.works.validated}`,
-		// `\t\t• Неподтвержденные работы: ${researcherInfo.works.selfAsserted}`,
-		// `\t- Образование и квалификация:`,
-		// ...researcherInfo.education.map(
-		// 	(edu) =>
-		// 		`\t\t• ${edu.organization} (${edu.role}, ${edu.startDate}${
-		// 			edu.endDate ? `-${edu.endDate}` : ""
-		// 		})`
-		// ),
-		// `\t- другие идентификаторы:`,
-		// ...researcherInfo.otherIdentifiers.map(
-		// 	(id) =>
-		// 		`\t\t• ${id.name}: ${id.value}${id.url ? ` (${id.url})` : ""}`
-		// ),
+		`- ORCID: [профиль ${researcherInfo?.givenName || ""} ${
+			researcherInfo?.familyName || ""
+		}](https://orcid.org/${
+			researcherInfo?.profileId
+		}) (на этом ресурсе автор сам заполняет данные о себе)`,
 	];
 
 	return lines.join("\n");

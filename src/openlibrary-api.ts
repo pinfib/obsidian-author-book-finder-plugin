@@ -77,7 +77,7 @@ export function formatOpenLibraryResult(authorData: AuthorData | null): string {
 	}
 
 	const lines = [
-		`- OpenLibraryInfo: имя: ${authorData.name}, профиль: ${authorData.url}`,
+		`- OpenLibraryInfo: [профиль ${authorData.name}](${authorData.url})`,
 		`\t- Рейтинг: ${authorData.ratings_average}`,
 		`\t- Количество работ: ${authorData.work_count}`,
 		`\t- Лучшая работа: ${authorData.top_work}`,
