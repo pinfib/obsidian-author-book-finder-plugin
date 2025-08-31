@@ -8,12 +8,23 @@ interface WikidataOccupation {
 	english: string;
 }
 
+interface WikidataFieldOfWork {
+	russian: string;
+	english: string;
+}
+
 interface WikidataResult {
 	russianName?: string;
 	englishName?: string;
 	educations: WikidataEducation[];
 	specialties: WikidataEducation[];
 	occupations: WikidataOccupation[];
+	fields: WikidataFieldOfWork[];
+	viaf?: string;
+	gnd?: string;
+	isni?: string;
+	orcid?: string;
+	scopus?: string;
 	openLibraryId?: string;
 }
 
@@ -30,31 +41,28 @@ export async function getWikidataPersonInfo(
         ?educationRu ?educationEn 
         ?specialtyRu ?specialtyEn 
         ?occupationRu ?occupationEn 
-        ?openLibraryId
+		?fieldRu ?fieldEn
+
+		?viaf ?gnd ?isni ?orcid ?scopus ?openLibraryId
       WHERE {
         {
-          # Поиск по основному названию
           ?person rdfs:label "${personName}"@${searchLanguage}.
         }
         UNION
         {
-          # Поиск по альтернативным названиям
           ?person skos:altLabel "${personName}"@${searchLanguage}.
         }
         
-        # Получаем русское имя
         OPTIONAL {
           ?person rdfs:label ?russianName.
           FILTER(LANG(?russianName) = "ru")
         }
         
-        # Получаем английское имя
         OPTIONAL {
           ?person rdfs:label ?englishName.
           FILTER(LANG(?englishName) = "en")
         }
         
-        # Образование (русское и английское)
         OPTIONAL {
           ?person wdt:P69 ?education.
           OPTIONAL {
@@ -67,7 +75,6 @@ export async function getWikidataPersonInfo(
           }
         }
         
-        # Специальность (русское и английское)
         OPTIONAL {
           ?person wdt:P512 ?specialty.
           OPTIONAL {
@@ -80,7 +87,6 @@ export async function getWikidataPersonInfo(
           }
         }
         
-        # Род занятий (русское и английское)
         OPTIONAL {
           ?person wdt:P106 ?occupation.
           OPTIONAL {
@@ -92,11 +98,19 @@ export async function getWikidataPersonInfo(
             FILTER(LANG(?occupationEn) = "en")
           }
         }
-        
-        # Open Library ID
-        OPTIONAL {
-          ?person wdt:P648 ?openLibraryId.
+
+		OPTIONAL {
+          ?person wdt:P101 ?field.
+          OPTIONAL { ?field rdfs:label ?fieldRu. FILTER(LANG(?fieldRu) = "ru") }
+          OPTIONAL { ?field rdfs:label ?fieldEn. FILTER(LANG(?fieldEn) = "en") }
         }
+        
+        OPTIONAL { ?person wdt:P214 ?viaf. }
+        OPTIONAL { ?person wdt:P227 ?gnd. }
+        OPTIONAL { ?person wdt:P213 ?isni. }
+        OPTIONAL { ?person wdt:P496 ?orcid. }
+        OPTIONAL { ?person wdt:P4284 ?scopus. }
+        OPTIONAL { ?person wdt:P648 ?openLibraryId. }
         
         SERVICE wikibase:label { bd:serviceParam wikibase:language "ru,en". }
       }
@@ -126,11 +140,13 @@ export async function getWikidataPersonInfo(
 			educations: [],
 			specialties: [],
 			occupations: [],
+			fields: [],
 		};
 
 		const educationMap = new Map<string, WikidataEducation>();
 		const specialtyMap = new Map<string, WikidataEducation>();
 		const occupationMap = new Map<string, WikidataOccupation>();
+		const fieldMap = new Map<string, WikidataFieldOfWork>();
 
 		data.results.bindings.forEach((binding: any) => {
 			// Русское имя
@@ -182,10 +198,31 @@ export async function getWikidataPersonInfo(
 				}
 			}
 
-			// Open Library ID
-			if (binding.openLibraryId?.value && !result.openLibraryId) {
-				result.openLibraryId = binding.openLibraryId.value;
+			//Область исследований
+			if (binding.fieldRu?.value || binding.fieldEn?.value) {
+				const key =
+					(binding.fieldRu?.value || "") +
+					(binding.fieldEn?.value || "");
+				if (!fieldMap.has(key)) {
+					fieldMap.set(key, {
+						russian: binding.fieldRu?.value || "",
+						english: binding.fieldEn?.value || "",
+					});
+				}
 			}
+
+			if (binding.viaf?.value && !result.viaf)
+				result.viaf = binding.viaf.value;
+			if (binding.gnd?.value && !result.gnd)
+				result.gnd = binding.gnd.value;
+			if (binding.isni?.value && !result.isni)
+				result.isni = binding.isni.value;
+			if (binding.orcid?.value && !result.orcid)
+				result.orcid = binding.orcid.value;
+			if (binding.scopus?.value && !result.scopus)
+				result.scopus = binding.scopus.value;
+			if (binding.openLibraryId?.value && !result.openLibraryId)
+				result.openLibraryId = binding.openLibraryId.value;
 		});
 
 		result.educations = Array.from(educationMap.values()).filter(
@@ -196,6 +233,10 @@ export async function getWikidataPersonInfo(
 		);
 		result.occupations = Array.from(occupationMap.values()).filter(
 			(occ) => occ.russian || occ.english
+		);
+
+		result.fields = Array.from(fieldMap.values()).filter(
+			(f) => f.russian || f.english
 		);
 
 		return result;
@@ -258,7 +299,40 @@ export function formatWikiDataResult(wikiData: WikidataResult): string {
 		});
 	}
 
-	// Open Library ID
+	// Область исследований
+	if (wikiData.fields.length > 0) {
+		lines.push(`\t- Область исследований:`);
+		wikiData.fields.forEach((f) => {
+			if (f.russian && f.english && f.russian !== f.english) {
+				lines.push(`\t\t- ${f.russian} (${f.english})`);
+			} else if (f.russian) {
+				lines.push(`\t\t- ${f.russian}`);
+			} else if (f.english) {
+				lines.push(`\t\t- ${f.english}`);
+			}
+		});
+	}
+
+	if (wikiData.viaf) {
+		lines.push(`\t- VIAF: ${wikiData.viaf}`);
+	}
+
+	if (wikiData.gnd) {
+		lines.push(`\t- GND: ${wikiData.gnd}`);
+	}
+
+	if (wikiData.isni) {
+		lines.push(`\t- ISNI: ${wikiData.isni}`);
+	}
+
+	if (wikiData.orcid) {
+		lines.push(`\t- ORCID: ${wikiData.orcid}`);
+	}
+
+	if (wikiData.scopus) {
+		lines.push(`\t- Scopus Author ID: ${wikiData.scopus}`);
+	}
+
 	if (wikiData.openLibraryId) {
 		lines.push(`\t- Open Library ID: ${wikiData.openLibraryId}`);
 	}
