@@ -54,13 +54,30 @@ export default class TextInsertPlugin extends Plugin {
 
 	// Функция для вставки текста
 	private async insertCustomText(editor: Editor) {
-		const selection = editor.getSelection();
+		const selection = editor.getSelection().trim();
 
-		let wikipediaLink = formatWikipediaMarkdownLink(
-			await getWikipediaPageInfo(selection)
-		);
+		let wikiData = await getWikidataPersonInfo(selection);
 
-		let wikiData = await getWikidataPersonInfo(selection.trim());
+		let wikipediaLinkRuOrSelect = "";
+		let wikipediaLinkEn = "";
+
+		if (wikiData?.russianName || selection) {
+			wikipediaLinkRuOrSelect = formatWikipediaMarkdownLink(
+				await getWikipediaPageInfo(
+					"ru",
+					wikiData?.russianName || selection
+				)
+			);
+		}
+
+		if (wikiData?.englishName || selection) {
+			wikipediaLinkEn = formatWikipediaMarkdownLink(
+				await getWikipediaPageInfo(
+					"en",
+					wikiData?.englishName || selection
+				)
+			);
+		}
 
 		let wikiDataString = formatWikiDataResult(wikiData);
 
@@ -78,6 +95,7 @@ export default class TextInsertPlugin extends Plugin {
 				familyName:
 					wikiData?.englishName || wikiData?.russianName || "",
 				givenName: "",
+				source: "Wikidata",
 			});
 		} else {
 			orcidString = formatOrcidPersonalInfo(
@@ -89,7 +107,9 @@ export default class TextInsertPlugin extends Plugin {
 
 		// Заменяем выделенный текст на наш кастомный текст
 		editor.replaceSelection(
-			`${wikipediaLink}\n${wikiDataString}\n${openLibraryString}\n${orcidString}`
+			`${wikipediaLinkEn || ""}\n${
+				wikipediaLinkRuOrSelect || ""
+			}\n${wikiDataString}\n${openLibraryString}\n${orcidString}`
 		);
 	}
 

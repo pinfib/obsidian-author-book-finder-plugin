@@ -13,26 +13,28 @@ interface WikipediaPageInfo {
 }
 
 export async function getWikipediaPageInfo(
+	lang: "en" | "ru",
 	name: string
 ): Promise<WikipediaPageInfo | null> {
+	console.info("-> Запрос к Wikipedia, строка поиска: ", name);
+
 	try {
 		const searchQuery = encodeURIComponent(name);
-		const url = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&format=json&origin=*`;
+		const url = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQuery}&format=json&origin=*`;
 
 		const response = await fetch(url);
-
 		if (!response.ok) {
 			throw new Error(`Ошибка HTTP: ${response.status}`);
 		}
 
 		const data: WikipediaSearchResult = await response.json();
 
-		if (data.query.search.length === 0) {
+		if (!data.query.search.length) {
 			return null;
 		}
 
 		const pageTitle = data.query.search[0].title;
-		const pageUrl = `https://ru.wikipedia.org/wiki/${encodeURIComponent(
+		const pageUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(
 			pageTitle
 		)}`;
 
@@ -50,9 +52,9 @@ export function formatWikipediaMarkdownLink(
 	pageInfo: WikipediaPageInfo | null
 ): string {
 	if (!pageInfo) {
-		return "- Не найдена ссылка на страницу в Википедии";
+		return "- Не найдена страница в Википедии";
 	}
-	return `- [${pageInfo.title}](${pageInfo.url})`;
+	return `- [Википедия: ${pageInfo.title}](${pageInfo.url})`;
 }
 
 export default getWikipediaPageInfo;

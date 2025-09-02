@@ -33,8 +33,9 @@ interface AuthorDetails {
 export async function getOpenLibraryPersonInfo(
 	identifier?: string
 ): Promise<AuthorData | null> {
+	console.info("-> Запрос к OpenLibrary, строка поиска: ", identifier);
+
 	try {
-		// Если ID не указан или это не OL ID - ищем по имени
 		const searchQuery = identifier || "";
 		const searchResponse = await fetch(
 			`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(
@@ -46,14 +47,12 @@ export async function getOpenLibraryPersonInfo(
 			throw new Error(`Search request failed: ${searchResponse.status}`);
 		}
 
-		// Правильно преобразуем Response в JSON
 		const searchData: AuthorSearchResult = await searchResponse.json();
 
 		if (searchData.numFound === 0 || searchData.docs.length === 0) {
 			return null;
 		}
 
-		// Берем первый результат поиска
 		const firstResult = searchData.docs[0];
 		const authorKey = firstResult.key.replace("/authors/", "");
 

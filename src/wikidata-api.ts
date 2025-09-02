@@ -31,6 +31,8 @@ interface WikidataResult {
 export async function getWikidataPersonInfo(
 	personName: string
 ): Promise<WikidataResult | null> {
+	console.info("-> Запрос к Wikidata, строка поиска: ", personName);
+
 	const hasCyrillic = /[а-яё]/i.test(personName);
 	const lang = hasCyrillic ? "ru" : "en";
 
@@ -130,10 +132,17 @@ export function formatWikiDataResult(wikiData?: WikidataResult | null): string {
 
 	const lines: string[] = [];
 
-	if (wikiData.russianName)
-		lines.push(`- Русское имя: ${wikiData.russianName}`);
-	if (wikiData.englishName && wikiData.englishName !== wikiData.russianName)
-		lines.push(`- Английское имя: ${wikiData.englishName}`);
+	if (
+		wikiData.englishName &&
+		wikiData.russianName &&
+		wikiData.englishName !== wikiData.russianName
+	) {
+		lines.push(
+			`- Имя: ${wikiData.russianName} (англ. ${wikiData.englishName})`
+		);
+	} else {
+		lines.push(`- Имя: ${wikiData.russianName || wikiData.englishName}`);
+	}
 
 	const formatList = (
 		title: string,
