@@ -123,7 +123,11 @@ export async function getWikidataPersonInfo(
 	}
 }
 
-export function formatWikiDataResult(wikiData: WikidataResult): string {
+export function formatWikiDataResult(wikiData?: WikidataResult | null): string {
+	if (!wikiData) {
+		return "";
+	}
+
 	const lines: string[] = [];
 
 	if (wikiData.russianName)

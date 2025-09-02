@@ -12,11 +12,6 @@ interface WikipediaPageInfo {
 	url: string;
 }
 
-/**
- * Ищет страницу в Википедии по имени человека и возвращает информацию о странице.
- * @param name - Имя человека для поиска.
- * @returns Промис, который разрешается в объект с названием и URL страницы или null, если страница не найдена.
- */
 export async function getWikipediaPageInfo(
 	name: string
 ): Promise<WikipediaPageInfo | null> {
@@ -51,11 +46,6 @@ export async function getWikipediaPageInfo(
 	}
 }
 
-/**
- * Форматирует информацию о странице в Markdown ссылку.
- * @param pageInfo - Информация о странице Википедии.
- * @returns Строка в формате Markdown.
- */
 export function formatWikipediaMarkdownLink(
 	pageInfo: WikipediaPageInfo | null
 ): string {

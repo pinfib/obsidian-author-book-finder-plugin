@@ -70,11 +70,22 @@ export default class TextInsertPlugin extends Plugin {
 			)
 		);
 
-		let orcidString = formatOrcidPersonalInfo(
-			await getOrcidPersonalInfo(
-				wikiData?.englishName || wikiData?.russianName || ""
-			)
-		);
+		let orcidString = "";
+
+		if (wikiData?.orcid) {
+			orcidString = formatOrcidPersonalInfo({
+				profileId: wikiData?.orcid,
+				familyName:
+					wikiData?.englishName || wikiData?.russianName || "",
+				givenName: "",
+			});
+		} else {
+			orcidString = formatOrcidPersonalInfo(
+				await getOrcidPersonalInfo(
+					wikiData?.englishName || wikiData?.russianName || ""
+				)
+			);
+		}
 
 		// Заменяем выделенный текст на наш кастомный текст
 		editor.replaceSelection(
