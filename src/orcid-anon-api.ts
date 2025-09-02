@@ -3,62 +3,8 @@ interface OrcidSearchResult {
 		"orcid-id": string;
 		"given-names": string;
 		"family-names": string;
-		"credit-name": string | null;
-		"other-name": string[];
-		email: string[];
-		"institution-name": string[];
 	}>;
 	"num-found": number;
-}
-
-interface OrcidSummary {
-	name: string;
-	orcid: string;
-	employmentAffiliations: Array<{
-		organizationName: string;
-		url: string | null;
-		startDate: string;
-		endDate: string | null;
-		role: string;
-		type: string;
-		validated: boolean;
-		putCode: number;
-	}>;
-	employmentAffiliationsCount: number;
-	creation: string;
-	lastModified: string;
-	validatedWorks: number;
-	selfAssertedWorks: number;
-	selfAssertedPeerReviews: number;
-	peerReviewsTotal: number;
-	peerReviewPublicationGrants: number;
-	validatedFunds: number;
-	selfAssertedFunds: number;
-	professionalActivities: any | null;
-	professionalActivitiesCount: number;
-	externalIdentifiers: Array<{
-		id: string;
-		commonName: string;
-		reference: string;
-		url: string;
-		validated: boolean;
-	}>;
-	status: string;
-	educationQualifications: Array<{
-		organizationName: string;
-		url: string | null;
-		startDate: string;
-		endDate: string | null;
-		role: string;
-		type: string;
-		validated: boolean;
-		putCode: number;
-	}>;
-	educationQualificationsCount: number;
-	validatedResearchResources: number;
-	selfAssertedResearchResources: number;
-	emailDomains: string[];
-	emailDomainsCount: number;
 }
 
 interface ResearcherInfo {
@@ -66,22 +12,6 @@ interface ResearcherInfo {
 	familyName: string;
 	givenName: string;
 	source: string;
-	// affiliations: string[];
-	// works: {
-	// 	validated: number;
-	// 	selfAsserted: number;
-	// };
-	// education: Array<{
-	// 	organization: string;
-	// 	role: string;
-	// 	startDate: string;
-	// 	endDate: string | null;
-	// }>;
-	// otherIdentifiers: Array<{
-	// 	name: string;
-	// 	value: string;
-	// 	url: string;
-	// }>;
 }
 
 export async function getOrcidPersonalInfo(
@@ -133,24 +63,14 @@ export function formatOrcidPersonalInfo(
 	researcherInfo: ResearcherInfo | null
 ): string {
 	if (!researcherInfo) {
-		return "";
-	}
-
-	const lines: string[] = [];
-
-	if (!researcherInfo?.profileId) {
 		return "- ORCID: Данные исследователя не найдены или произошла ошибка";
 	}
 
-	lines.push(
-		`- ORCID: [профиль ${researcherInfo?.givenName || ""} ${
-			researcherInfo?.familyName || ""
-		}](https://orcid.org/${researcherInfo?.profileId}), источник: ${
-			researcherInfo.source
-		} (на этом ресурсе автор сам заполняет данные о себе)`
-	);
-
-	return lines.join("\n");
+	return `- ORCID: [профиль ${researcherInfo.givenName || ""} ${
+		researcherInfo.familyName || ""
+	}](https://orcid.org/${researcherInfo.profileId}), источник: ${
+		researcherInfo.source
+	} (на этом ресурсе автор сам заполняет данные о себе)`;
 }
 
 export default getOrcidPersonalInfo;
