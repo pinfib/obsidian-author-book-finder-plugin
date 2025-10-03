@@ -164,11 +164,37 @@ export function formatWikiDataResult(wikiData?: WikidataResult | null): string {
 	formatList("Род занятий", wikiData.occupations);
 	formatList("Область исследований", wikiData.fields);
 
-	if (wikiData.viaf) lines.push(`\t- VIAF: ${wikiData.viaf}`);
-	if (wikiData.gnd) lines.push(`\t- GND: ${wikiData.gnd}`);
-	if (wikiData.isni) lines.push(`\t- ISNI: ${wikiData.isni}`);
+	if (wikiData.viaf) {
+		lines.push(
+			`\t- VIAF: [${wikiData.viaf}](https://viaf.org/viaf/${wikiData.viaf}/)`
+		);
+	}
+
+	if (wikiData.gnd) {
+		lines.push(
+			`\t- GND: [${wikiData.gnd}](https://d-nb.info/gnd/${wikiData.gnd})`
+		);
+	}
+
+	if (wikiData.isni) {
+		// ISNI хранится как 16-значный номер, иногда с пробелами — нормализуем
+		const cleanIsni = wikiData.isni.replace(/\s+/g, "");
+		lines.push(
+			`\t- ISNI: [${wikiData.isni}](https://isni.org/isni/${cleanIsni})`
+		);
+	}
+
+	if (wikiData.scopus) {
+		lines.push(
+			`\t- Scopus: [${wikiData.scopus}](https://www.scopus.com/authid/detail.uri?authorId=${wikiData.scopus})`
+		);
+	}
+
+	// if (wikiData.viaf) lines.push(`\t- VIAF: ${wikiData.viaf}`);
+	// if (wikiData.gnd) lines.push(`\t- GND: ${wikiData.gnd}`);
+	// if (wikiData.isni) lines.push(`\t- ISNI: ${wikiData.isni}`);
 	if (wikiData.orcid) lines.push(`\t- ORCID: ${wikiData.orcid}`);
-	if (wikiData.scopus) lines.push(`\t- Scopus Author ID: ${wikiData.scopus}`);
+	//if (wikiData.scopus) lines.push(`\t- Scopus Author ID: ${wikiData.scopus}`);
 	if (wikiData.openLibraryId)
 		lines.push(`\t- Open Library ID: ${wikiData.openLibraryId}`);
 

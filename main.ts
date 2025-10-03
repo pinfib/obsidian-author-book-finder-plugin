@@ -15,6 +15,10 @@ import {
 	getWikipediaPageInfo,
 	formatWikipediaMarkdownLink,
 } from "./src/wikipedia-page-search";
+import {
+	getSemanticScholarAuthorInfo,
+	formatSemanticScholarAuthorInfo,
+} from "./src/semantic-scholar-api";
 
 interface TextInsertPluginSettings {
 	defaultText: string;
@@ -104,12 +108,17 @@ export default class TextInsertPlugin extends Plugin {
 				)
 			);
 		}
+		// let semanticScholarString = formatSemanticScholarAuthorInfo(
+		// 	await getSemanticScholarAuthorInfo(
+		// 		wikiData?.englishName || selection || wikiData?.russianName
+		// 	)
+		// );
 
 		// Заменяем выделенный текст на наш кастомный текст
 		editor.replaceSelection(
 			`${wikipediaLinkEn || ""}\n${
 				wikipediaLinkRuOrSelect || ""
-			}\n${wikiDataString}\n${openLibraryString}\n${orcidString}`
+			}\n${wikiDataString}\n${openLibraryString}\n${orcidString}\n`
 		);
 	}
 
